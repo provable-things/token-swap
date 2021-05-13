@@ -5,16 +5,16 @@ const {
 const assert = require('assert')
 const { prop } = require('ramda')
 const { expectRevert } = require('@openzeppelin/test-helpers')
-const ERC20_MINTABLE_ARTIFACT = artifacts.require('ERC20_MINTABLE.sol')
+const PTOKEN_SIMPLE_ARTIFACT = artifacts.require('PTOKEN_SIMPLE.sol')
 
-contract('ERC20_MINTABLE', ([ MINTER, NON_MINTER, TOKEN_RECIPIENT ]) => {
+contract('PTOKEN_SIMPLE', ([ MINTER, NON_MINTER, TOKEN_RECIPIENT ]) => {
   let TOKEN_METHODS
   const GAS_LIMIT = 3e6
   const TOKEN_AMOUNT = 1337
 
   beforeEach(async () => {
     assert(MINTER !== NON_MINTER)
-    const TOKEN_CONTRACT = await getContract(web3, ERC20_MINTABLE_ARTIFACT)
+    const TOKEN_CONTRACT = await getContract(web3, PTOKEN_SIMPLE_ARTIFACT)
     TOKEN_METHODS = prop('methods', TOKEN_CONTRACT)
   })
 
@@ -29,7 +29,7 @@ contract('ERC20_MINTABLE', ([ MINTER, NON_MINTER, TOKEN_RECIPIENT ]) => {
   it('`NON_MINTER` cannot mint', async () => {
     await expectRevert(
       TOKEN_METHODS.mint(TOKEN_RECIPIENT, TOKEN_AMOUNT).send({ from: NON_MINTER, gas: GAS_LIMIT }),
-      'Only `MINTER` can call this function!',
+      'Caller is not the minter',
     )
   })
 })
