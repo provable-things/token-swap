@@ -37,9 +37,13 @@ contract('TOKEN_SWAP', ([ OWNER, TOKEN_HOLDER ]) => {
     const lottoBalanceBefore = await getTokenBalance(TOKEN_HOLDER, LOTTO_METHODS)
     assert.strictEqual(lottoBalanceBefore, 0)
     await mintTokensTo(PLOTTO_METHODS, OWNER, TOKEN_HOLDER, TOKEN_AMOUNT)
+    const pLottoBalanceInTokenSwapContractBefore = await getTokenBalance(TOKEN_SWAP_ADDRESS, PLOTTO_METHODS)
+    assert.strictEqual(pLottoBalanceInTokenSwapContractBefore, 0)
     await PLOTTO_METHODS.send(TOKEN_SWAP_ADDRESS, TOKEN_AMOUNT, EMPTY_DATA).send({ from: TOKEN_HOLDER, gas: GAS_LIMIT })
     const lottoBalanceAfter = await getTokenBalance(TOKEN_HOLDER, LOTTO_METHODS)
     assert.strictEqual(lottoBalanceAfter, TOKEN_AMOUNT)
+    const pLottoBalanceInTokenSwapContractAfter = await getTokenBalance(TOKEN_SWAP_ADDRESS, PLOTTO_METHODS)
+    assert.strictEqual(pLottoBalanceInTokenSwapContractAfter, TOKEN_AMOUNT)
   })
 
   it('Sending ERC777 tokens other than `PLOTTO` to the `TOKEN_SWAP` contract should revert', async () => {
