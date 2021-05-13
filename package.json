@@ -27,7 +27,8 @@
   "dependencies": {
     "@openzeppelin/contracts": "v3.4.0",
     "@openzeppelin/test-helpers": "^0.5.11",
-    "ramda": "^0.27.1"
+    "ramda": "^0.27.1",
+    "truffle": "^5.3.6"
   },
   "devDependencies": {
     "eslint": "^5.14.1",
