@@ -26,6 +26,7 @@
   "homepage": "https://github.com/provable-things/token-swap#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^4.1.0",
+    "@openzeppelin/test-helpers": "^0.5.11",
     "ramda": "^0.27.1"
   },
   "devDependencies": {
