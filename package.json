@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "npx truffle test"
+    "test": "echo \"=> Please see the README.md for how to run tests!\""
   },
   "repository": {
     "type": "git",
