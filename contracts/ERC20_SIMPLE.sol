@@ -49,10 +49,12 @@ contract ERC20_SIMPLE is ERC20 {
     }
 
     function burn(
+        address _from,
         uint256 _amount
     )
         external
+        onlyAdmin
     {
-        _burn(msg.sender, _amount);
+        _burn(_from, _amount);
     }
 }

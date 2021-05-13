@@ -22,6 +22,7 @@ contract('ERC20_SIMPLE', ([ OWNER, NON_ADMIN, TOKEN_HOLDER ]) => {
     const TOKEN_CONTRACT = await getContract(web3, ERC20_SIMPLE_ARTIFACT)
     TOKEN_METHODS = prop('methods', TOKEN_CONTRACT)
     ADMIN = await getAdminAddress(TOKEN_METHODS)
+    assert.notStrictEqual(ADMIN, NON_ADMIN)
   })
 
   it('`ADMIN` can mint tokens', async () => {
@@ -40,7 +41,7 @@ contract('ERC20_SIMPLE', ([ OWNER, NON_ADMIN, TOKEN_HOLDER ]) => {
     )
   })
 
-  it.only('`ADMIN` can burn tokens', async () => {
+  it('`ADMIN` can burn tokens', async () => {
     const BURN_AMOUNT = Math.floor(TOKEN_AMOUNT / 2)
     assert(BURN_AMOUNT <= TOKEN_AMOUNT)
     await TOKEN_METHODS.mint(TOKEN_HOLDER, TOKEN_AMOUNT).send({ from: ADMIN, gas: GAS_LIMIT })
@@ -51,5 +52,17 @@ contract('ERC20_SIMPLE', ([ OWNER, NON_ADMIN, TOKEN_HOLDER ]) => {
     assert.strictEqual(tokenHolderBalanceAfter, parseInt(tokenHolderBalanceBefore) - BURN_AMOUNT)
   })
 
-  it('Non `ADMIN` cannot burn tokens')
+  it('Non `ADMIN` cannot burn tokens', async () => {
+    const BURN_AMOUNT = Math.floor(TOKEN_AMOUNT / 2)
+    assert(BURN_AMOUNT <= TOKEN_AMOUNT)
+    await TOKEN_METHODS.mint(TOKEN_HOLDER, TOKEN_AMOUNT).send({ from: ADMIN, gas: GAS_LIMIT })
+    const tokenHolderBalanceBefore = await getTokenBalance(TOKEN_HOLDER, TOKEN_METHODS)
+    assert.strictEqual(tokenHolderBalanceBefore, TOKEN_AMOUNT)
+    await expectRevert(
+      TOKEN_METHODS.burn(TOKEN_HOLDER, BURN_AMOUNT).send({ from: NON_ADMIN, gas: GAS_LIMIT }),
+      'Only `ADMIN` can call this function!',
+    )
+    const tokenHolderBalanceAfter = await getTokenBalance(TOKEN_HOLDER, TOKEN_METHODS)
+    assert.strictEqual(tokenHolderBalanceAfter, tokenHolderBalanceBefore)
+  })
 })
