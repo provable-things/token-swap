@@ -3,7 +3,7 @@ pragma solidity >=0.7.0 < 0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract ERC20_MINTABLE is ERC20 {
+contract ERC20_SIMPLE is ERC20 {
 
     address public OWNER;
     address public ADMIN;

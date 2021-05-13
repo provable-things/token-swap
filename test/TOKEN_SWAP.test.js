@@ -8,7 +8,7 @@ const { prop } = require('ramda')
 const { expectRevert } = require('@openzeppelin/test-helpers')
 const TOKEN_SWAP_ARTIFACT = artifacts.require('TOKEN_SWAP.sol')
 const PTOKEN_SIMPLE_ARTIFACT = artifacts.require('PTOKEN_SIMPLE.sol')
-const ERC20_MINTABLE_ARTIFACT = artifacts.require('ERC20_MINTABLE.sol')
+const ERC20_SIMPLE_ARTIFACT = artifacts.require('ERC20_SIMPLE.sol')
 
 contract('TOKEN_SWAP', ([ OWNER, TOKEN_HOLDER ]) => {
   let PLOTTO_METHODS, LOTTO_METHODS, TOKEN_SWAP_METHODS, PLOTTO_ADDRESS, LOTTO_ADDRESS, TOKEN_SWAP_ADDRESS
@@ -18,7 +18,7 @@ contract('TOKEN_SWAP', ([ OWNER, TOKEN_HOLDER ]) => {
   const TOKEN_AMOUNT = 1337
 
   beforeEach(async () => {
-    const LOTTO_CONTRACT = await getContract(web3, ERC20_MINTABLE_ARTIFACT)
+    const LOTTO_CONTRACT = await getContract(web3, ERC20_SIMPLE_ARTIFACT)
     LOTTO_METHODS = prop('methods', LOTTO_CONTRACT)
     LOTTO_ADDRESS = prop('_address', LOTTO_CONTRACT)
 
