@@ -30,7 +30,7 @@ contract('TOKEN_SWAP', ([ OWNER, TOKEN_HOLDER ]) => {
     TOKEN_SWAP_METHODS = prop('methods', TOKEN_SWAP_CONTRACT)
     TOKEN_SWAP_ADDRESS = prop('_address', TOKEN_SWAP_CONTRACT)
 
-    await LOTTO_METHODS.setMinter(TOKEN_SWAP_ADDRESS).send({ from: OWNER })
+    await LOTTO_METHODS.setAdmin(TOKEN_SWAP_ADDRESS).send({ from: OWNER })
   })
 
   it('Sending pLOTTO tokens to `TOKEN_SWAP contract should mint `Lotto` tokens`', async () => {

@@ -7,7 +7,7 @@ const checkObjHasKey = (_obj, _key) =>
       : reject(new Error(`Obj does not have '${_key}' key!`))
   )
 
-module.exports.getTokenBalance = (_recipient, _methods) =>
+const getTokenBalance = (_recipient, _methods) =>
   new Promise((resolve, reject) => {
     const method = 'balanceOf'
     return !has(method, _methods)
@@ -19,7 +19,7 @@ module.exports.getTokenBalance = (_recipient, _methods) =>
         .catch(reject)
   })
 
-module.exports.getContract = (_web3, _artifact, _constructorParams = []) =>
+const getContract = (_web3, _artifact, _constructorParams = []) =>
   new Promise((resolve, reject) =>
     _artifact
       .new(..._constructorParams)
@@ -27,7 +27,14 @@ module.exports.getContract = (_web3, _artifact, _constructorParams = []) =>
       .catch(reject)
   )
 
-module.exports.mintTokensTo = (_methods, _minter, _recipient, _amount) => {
+const mintTokensTo = (_methods, _minter, _recipient, _amount) => {
   const method = 'mint'
   return checkObjHasKey(_methods, method).then(_ => _methods[method](_recipient, _amount).send({ from: _minter }))
+}
+
+module.exports = {
+  getTokenBalance,
+  checkObjHasKey,
+  mintTokensTo,
+  getContract,
 }

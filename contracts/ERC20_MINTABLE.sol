@@ -6,13 +6,13 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract ERC20_MINTABLE is ERC20 {
 
     address public OWNER;
-    address public MINTER;
+    address public ADMIN;
 
     constructor()
         ERC20("ERC20", "ERC")
     {
         OWNER = msg.sender;
-        MINTER = msg.sender;
+        ADMIN = msg.sender;
         _mint(msg.sender, 1e18);
     }
 
@@ -21,18 +21,18 @@ contract ERC20_MINTABLE is ERC20 {
         _;
     }
 
-    modifier onlyMinter() {
-        require(msg.sender == MINTER, 'Only `MINTER` can call this function!');
+    modifier onlyAdmin() {
+        require(msg.sender == ADMIN, 'Only `ADMIN` can call this function!');
         _;
     }
 
-    function setMinter(
-        address _minter
+    function setAdmin(
+        address _admin
     )
         external
         onlyOwner
     {
-        MINTER = _minter;
+        ADMIN = _admin;
     }
 
     function mint(
@@ -40,7 +40,7 @@ contract ERC20_MINTABLE is ERC20 {
         uint256 _amount
     )
         external
-        onlyMinter
+        onlyAdmin
         returns (bool success)
     {
         require(_to != address(0), "Cannot mint to the zero address!");
