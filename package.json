@@ -23,5 +23,8 @@
   "bugs": {
     "url": "https://github.com/provable-things/token-swap/issues"
   },
-  "homepage": "https://github.com/provable-things/token-swap#readme"
+  "homepage": "https://github.com/provable-things/token-swap#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.1.0"
+  }
 }
