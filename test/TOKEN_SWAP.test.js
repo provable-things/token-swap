@@ -33,7 +33,7 @@ contract('TOKEN_SWAP', ([ OWNER, TOKEN_HOLDER ]) => {
     await LOTTO_METHODS.setAdmin(TOKEN_SWAP_ADDRESS).send({ from: OWNER })
   })
 
-  it('Sending pLOTTO tokens to `TOKEN_SWAP contract should mint `Lotto` tokens`', async () => {
+  it('Sending `pLOTTO` tokens to `TOKEN_SWAP contract should mint `Lotto` tokens`', async () => {
     const lottoBalanceBefore = await getTokenBalance(TOKEN_HOLDER, LOTTO_METHODS)
     assert.strictEqual(lottoBalanceBefore, 0)
     await mintTokensTo(PLOTTO_METHODS, OWNER, TOKEN_HOLDER, TOKEN_AMOUNT)
@@ -46,7 +46,7 @@ contract('TOKEN_SWAP', ([ OWNER, TOKEN_HOLDER ]) => {
     assert.strictEqual(pLottoBalanceInTokenSwapContractAfter, TOKEN_AMOUNT)
   })
 
-  it('Sending ERC777 tokens other than `PLOTTO` to the `TOKEN_SWAP` contract should revert', async () => {
+  it('Sending ERC777 tokens other than `pLOTTO` to the `TOKEN_SWAP` contract should revert', async () => {
     const ERC777_CONTRACT = await getContract(web3, PTOKEN_SIMPLE_ARTIFACT)
     const ERC777_METHODS = prop('methods', ERC777_CONTRACT)
     const ERC777_ADDRESS = prop('_address', ERC777_CONTRACT)
@@ -56,5 +56,20 @@ contract('TOKEN_SWAP', ([ OWNER, TOKEN_HOLDER ]) => {
       ERC777_METHODS.send(TOKEN_SWAP_ADDRESS, TOKEN_AMOUNT, EMPTY_DATA).send({ from: TOKEN_HOLDER, gas: GAS_LIMIT }),
       'This contract only accepts pLotto tokens!',
     )
+  })
+
+  it('Redeeming `pLotto` tokens will burn `Lotto` tokens', async () => {
+    const REDEEM_AMOUNT = Math.floor(TOKEN_AMOUNT / 2)
+    await mintTokensTo(PLOTTO_METHODS, OWNER, TOKEN_HOLDER, TOKEN_AMOUNT)
+    await PLOTTO_METHODS.send(TOKEN_SWAP_ADDRESS, TOKEN_AMOUNT, EMPTY_DATA).send({ from: TOKEN_HOLDER, gas: GAS_LIMIT })
+    const lottoBalanceBefore = await getTokenBalance(TOKEN_HOLDER, LOTTO_METHODS)
+    const pLottoBalanceBefore = await getTokenBalance(TOKEN_HOLDER, PLOTTO_METHODS)
+    assert.strictEqual(lottoBalanceBefore, TOKEN_AMOUNT)
+    assert.strictEqual(pLottoBalanceBefore, 0)
+    await TOKEN_SWAP_METHODS.redeemPLotto(REDEEM_AMOUNT).send({ from: TOKEN_HOLDER, gas: GAS_LIMIT })
+    const lottoBalanceAfter = await getTokenBalance(TOKEN_HOLDER, LOTTO_METHODS)
+    const pLottoBalanceAfter = await getTokenBalance(TOKEN_HOLDER, PLOTTO_METHODS)
+    assert.strictEqual(lottoBalanceAfter, lottoBalanceBefore - REDEEM_AMOUNT)
+    assert.strictEqual(pLottoBalanceAfter, REDEEM_AMOUNT)
   })
 })
