@@ -47,4 +47,12 @@ contract ERC20_MINTABLE is ERC20 {
         _mint(_to, _amount);
         return true;
     }
+
+    function burn(
+        uint256 _amount
+    )
+        external
+    {
+        _burn(msg.sender, _amount);
+    }
 }
