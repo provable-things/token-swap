@@ -1,0 +1,27 @@
+{
+  "name": "token-swap",
+  "version": "0.1.0",
+  "description": "A simple contract to swap one token for another.",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "npx truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/provable-things/token-swap.git"
+  },
+  "keywords": [
+    "ethereum",
+    "defi",
+    "provable"
+  ],
+  "author": "Greg Kapka <greg@oraclize.it>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/provable-things/token-swap/issues"
+  },
+  "homepage": "https://github.com/provable-things/token-swap#readme"
+}

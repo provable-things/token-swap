@@ -1,0 +1,4 @@
+node_modules
+rsync-script.sh
+*.sw*
+*pnpm-debug.log
