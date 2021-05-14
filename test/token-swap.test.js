@@ -41,6 +41,8 @@ contract('TOKEN_SWAP', ([ OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS ]) => {
   })
 
   it('Sending `pLOTTO` tokens to `TOKEN_SWAP contract should mint `Lotto` tokens`', async () => {
+    // NOTE: This is the TWO step peg-in described in the README.md
+
     // Assert zero balances...
     assert.strictEqual(await getUserLottoBalance(), 0)
     assert.strictEqual(await getUserPLottoBalance(), 0)
@@ -60,6 +62,45 @@ contract('TOKEN_SWAP', ([ OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS ]) => {
       .send({ from: TOKEN_HOLDER_ADDRESS, gas: GAS_LIMIT })
 
     // Assert final balances...
+    assert.strictEqual(await getUserPLottoBalance(), 0)
+    assert.strictEqual(await getUserLottoBalance(), TOKEN_AMOUNT)
+    assert.strictEqual(await getTokenSwapContractPLottoBalance(), TOKEN_AMOUNT)
+  })
+
+  it('pLotto minted by the Provable bridge with the correct metadata will mint Lotto tokes in one tx', async () => {
+    // NOTE: This is the ONE step peg-in described in the README.md
+
+    // Dummy values to create `pTokenMetadata` with...
+    const PTOKEN_METADATA_DUMMY_METADATA_VERSION = '0x01'
+    const PTOKEN_METADATA_DUMMY_PROTOCOL_ID = '0x005fe7f9'
+    const PTOKEN_METADATA_DUMMY_ORIGIN_ADDRESS = '0x7eef81767e36269db39ffa6271cc4325cbc59cfe'
+
+    // ABI Encode the destination address as 'userData'...
+    const userData = web3.eth.abi.encodeParameters(['address'], [TOKEN_HOLDER_ADDRESS])
+
+    // Use the 'userData' when encoding the pToken metadata...
+    const pTokenMetadata = encodePTokenMetadata(
+      web3,
+      PTOKEN_METADATA_DUMMY_METADATA_VERSION,
+      userData,
+      PTOKEN_METADATA_DUMMY_PROTOCOL_ID,
+      PTOKEN_METADATA_DUMMY_ORIGIN_ADDRESS,
+    )
+
+    // Assert 0 balances before...
+    assert.strictEqual(await getUserLottoBalance(), 0)
+    assert.strictEqual(await getUserPLottoBalance(), 0)
+    assert.strictEqual(await getTokenSwapContractPLottoBalance(), 0)
+
+    // Mint pLotto tokens to the `TOKEN_SWAP_ADDRESS` with the final user's destination address encoded in the metadata.
+    await PLOTTO_METHODS['mint(address,uint256,bytes,bytes)'](
+      TOKEN_SWAP_ADDRESS,
+      TOKEN_AMOUNT,
+      pTokenMetadata,
+      EMPTY_DATA, // NOTE: Unused ERC777-specific param: `operatorData`
+    ).send({ from: OWNER_ADDRESS, gas: GAS_LIMIT })
+
+    // Assert balances after...
     assert.strictEqual(await getUserPLottoBalance(), 0)
     assert.strictEqual(await getUserLottoBalance(), TOKEN_AMOUNT)
     assert.strictEqual(await getTokenSwapContractPLottoBalance(), TOKEN_AMOUNT)
@@ -85,53 +126,11 @@ contract('TOKEN_SWAP', ([ OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS ]) => {
     await PLOTTO_METHODS
       .send(TOKEN_SWAP_ADDRESS, TOKEN_AMOUNT, EMPTY_DATA)
       .send({ from: TOKEN_HOLDER_ADDRESS, gas: GAS_LIMIT })
-    const lottoBalanceBefore = await getTokenBalance(TOKEN_HOLDER_ADDRESS, LOTTO_METHODS)
-    const pLottoBalanceBefore = await getTokenBalance(TOKEN_HOLDER_ADDRESS, PLOTTO_METHODS)
-    assert.strictEqual(lottoBalanceBefore, TOKEN_AMOUNT)
-    assert.strictEqual(pLottoBalanceBefore, 0)
+    const userLottoBalanceBefore = await getUserLottoBalance()
+    assert.strictEqual(userLottoBalanceBefore, TOKEN_AMOUNT)
+    assert.strictEqual(await getUserPLottoBalance(), 0)
     await TOKEN_SWAP_METHODS.redeemPLotto(REDEEM_AMOUNT).send({ from: TOKEN_HOLDER_ADDRESS, gas: GAS_LIMIT })
-    const lottoBalanceAfter = await getTokenBalance(TOKEN_HOLDER_ADDRESS, LOTTO_METHODS)
-    const pLottoBalanceAfter = await getTokenBalance(TOKEN_HOLDER_ADDRESS, PLOTTO_METHODS)
-    assert.strictEqual(lottoBalanceAfter, lottoBalanceBefore - REDEEM_AMOUNT)
-    assert.strictEqual(pLottoBalanceAfter, REDEEM_AMOUNT)
-  })
-
-  it('pLotto minted by the Provable bridge with the correct metadata will mint Lotto tokes in one tx', async () => {
-    // Dummy values to create `pTokenMetadata` with...
-    const PTOKEN_METADATA_DUMMY_METADATA_VERSION = '0x01'
-    const PTOKEN_METADATA_DUMMY_PROTOCOL_ID = '0x005fe7f9'
-    const PTOKEN_METADATA_DUMMY_ORIGIN_ADDRESS = '0x7eef81767e36269db39ffa6271cc4325cbc59cfe'
-
-    // ABI Encode the destination recipient address as 'userData'...
-    const userData = web3.eth.abi.encodeParameters(['address'], [TOKEN_HOLDER_ADDRESS])
-
-    // Use the 'userData' when encoding the pToken metadata...
-    const pTokenMetadata = encodePTokenMetadata(
-      web3,
-      PTOKEN_METADATA_DUMMY_METADATA_VERSION,
-      userData,
-      PTOKEN_METADATA_DUMMY_PROTOCOL_ID,
-      PTOKEN_METADATA_DUMMY_ORIGIN_ADDRESS,
-    )
-
-    // Assert balances before...
-    const tokenSwapContractPLottoBalanceBefore = await getTokenBalance(TOKEN_SWAP_ADDRESS, PLOTTO_METHODS)
-    assert.strictEqual(tokenSwapContractPLottoBalanceBefore, 0)
-    const tokenHolderLottoBalanceBefore = await getTokenBalance(TOKEN_HOLDER_ADDRESS, LOTTO_METHODS)
-    assert.strictEqual(tokenHolderLottoBalanceBefore, 0)
-
-    // Mint pLotto tokens to the `TOKEN_SWAP_ADDRESS` with the final user's destination address encoded in the metadata.
-    await PLOTTO_METHODS['mint(address,uint256,bytes,bytes)'](
-      TOKEN_SWAP_ADDRESS,
-      TOKEN_AMOUNT,
-      pTokenMetadata,
-      EMPTY_DATA, // NOTE: Unused ERC777-specific param: `operatorData`
-    ).send({ from: OWNER_ADDRESS, gas: GAS_LIMIT })
-
-    // Assert balances after...
-    const tokenSwapContractPLottoBalanceAfter = await getTokenBalance(TOKEN_SWAP_ADDRESS, PLOTTO_METHODS)
-    assert.strictEqual(tokenSwapContractPLottoBalanceAfter, TOKEN_AMOUNT)
-    const tokenHolderLottoBalanceAfter = await getTokenBalance(TOKEN_HOLDER_ADDRESS, LOTTO_METHODS)
-    assert.strictEqual(tokenHolderLottoBalanceAfter, TOKEN_AMOUNT)
+    assert.strictEqual(await getUserLottoBalance(), userLottoBalanceBefore - REDEEM_AMOUNT)
+    assert.strictEqual(await getUserPLottoBalance(), REDEEM_AMOUNT)
   })
 })
