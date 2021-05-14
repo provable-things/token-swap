@@ -1,6 +1,7 @@
 const {
   getContract,
   getTokenBalance,
+  getRandomEthAddress,
 } = require('./test-utils')
 const assert = require('assert')
 const { prop } = require('ramda')
@@ -70,9 +71,10 @@ contract('LOTTO', ([ , TOKEN_SWAP_CONTRACT_ADDRESS, NON_TOKEN_SWAP_CONTRACT_ADDR
 
   it('Cannot redeem origin chain Lotto tokens if insufficient balance', async () => {
     assert(await getTokenBalance(NON_USER, LOTTO_TOKEN_METHODS) < TOKEN_AMOUNT)
+    const IRRELEVANT_PARAMS = [ TOKEN_AMOUNT, `${getRandomEthAddress(web3)}` ]
     await expectRevert(
       LOTTO_TOKEN_METHODS
-        .redeemOriginChainLottoTokens(TOKEN_AMOUNT)
+        .redeemOriginChainLottoTokens(...IRRELEVANT_PARAMS)
         .send({ from: NON_USER, gas: GAS_LIMIT }),
       'Insufficient balance to redeem origin chain Lotto tokens!',
     )
