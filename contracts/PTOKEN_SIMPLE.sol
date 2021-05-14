@@ -67,18 +67,4 @@ contract PTOKEN_SIMPLE is ERC777 {
         _burn(msg.sender, _amount, _userData, "");
         emit Redeem(msg.sender, _amount, _underlyingAssetRecipient, _userData);
     }
-
-    function operatorRedeem(
-        address _account,
-        uint256 _amount,
-        bytes calldata _userData,
-        bytes calldata _operatorData,
-        string calldata _underlyingAssetRecipient
-    )
-        external
-    {
-        require(isOperatorFor(msg.sender, _account), "ERC777: caller is not an operator for holder");
-        _burn(_account, _amount, _userData, _operatorData);
-        emit Redeem(_account, _amount, _underlyingAssetRecipient, _userData);
-    }
 }
