@@ -132,6 +132,11 @@ contract.only('TOKEN_SWAP', ([ OWNER_ADDRESS, NON_OWNER_ADDRESS, USER_ADDRESS ])
   })
 
   describe('Token swapping tests:', () => {
+    // This user doesn't drink caffeine...
+    const USER_DATA = '0xdecaff'
+    // Create random address for user to peg-out to...
+    const DESTINATION_ADDRESS = `${getRandomEthAddress(web3)}`
+
     describe('ONE-STEP peg-in/peg-out tests:', () => {
       const getPTokenMetadataWithUserDestinationAddress = _web3 => {
         // Dummy values to create `pTokenMetadata` with...
@@ -175,7 +180,7 @@ contract.only('TOKEN_SWAP', ([ OWNER_ADDRESS, NON_OWNER_ADDRESS, USER_ADDRESS ])
       })
 
       it('Should peg-out via a single transaction:', async () => {
-        // Peg-in (via same method as previous test)...
+        // User pegs-in via same one-step method as the preceding test...
         await PLOTTO_METHODS['mint(address,uint256,bytes,bytes)'](
           TOKEN_SWAP_ADDRESS,
           TOKEN_AMOUNT,
@@ -188,12 +193,6 @@ contract.only('TOKEN_SWAP', ([ OWNER_ADDRESS, NON_OWNER_ADDRESS, USER_ADDRESS ])
         assert.strictEqual(await getUserLottoBalance(), TOKEN_AMOUNT)
         assert.strictEqual(await getTokenSwapContractPLottoBalance(), TOKEN_AMOUNT)
 
-        // Create random address for user to peg-out to...
-        const DESTINATION_ADDRESS = `${getRandomEthAddress(web3)}`
-
-        // This user doesn't drink caffeine...
-        const USER_DATA = '0xdecaff'
-
         // User pegs-out via the `LOTTO_CONTRACT` function...
         await LOTTO_METHODS['redeemOriginChainLottoTokens(uint256,string,bytes)'](
           TOKEN_AMOUNT,
@@ -201,7 +200,7 @@ contract.only('TOKEN_SWAP', ([ OWNER_ADDRESS, NON_OWNER_ADDRESS, USER_ADDRESS ])
           USER_DATA
         ).send({ from: USER_ADDRESS, gas: GAS_LIMIT })
 
-        // Assert zero balances after...
+        // Assert zero balances after peg-out...
         assert.strictEqual(await getUserPLottoBalance(), 0)
         assert.strictEqual(await getUserLottoBalance(), 0)
         assert.strictEqual(await getTokenSwapContractPLottoBalance(), 0)
@@ -210,13 +209,13 @@ contract.only('TOKEN_SWAP', ([ OWNER_ADDRESS, NON_OWNER_ADDRESS, USER_ADDRESS ])
         const redeemEvents = await PLOTTO_CONTRACT.getPastEvents(REDEEM_EVENT_NAME)
         assert.strictEqual(redeemEvents.length, 1)
         const eventData = redeemEvents[0].returnValues
+        assert.strictEqual(eventData.userData, USER_DATA)
         assert.strictEqual(eventData.value, `${TOKEN_AMOUNT}`)
         assert.strictEqual(eventData.redeemer, `${TOKEN_SWAP_ADDRESS}`)
         assert.strictEqual(eventData._underlyingAssetRecipient, DESTINATION_ADDRESS)
-        assert.strictEqual(eventData.userData, USER_DATA)
 
-        // The pToken bridge takes over from here having seen the `redeem` event.
-        // It completes the peg-out to the origin-chain.
+        // The pToken bridge takes over from here having seen the `redeem` event. The bridge completes the peg-out
+        // to the origin-chain.
       })
     })
 
@@ -246,7 +245,50 @@ contract.only('TOKEN_SWAP', ([ OWNER_ADDRESS, NON_OWNER_ADDRESS, USER_ADDRESS ])
         assert.strictEqual(await getTokenSwapContractPLottoBalance(), TOKEN_AMOUNT)
       })
 
-      it('Should peg out via two transactions')
+      it('Should peg out via two transactions', async () => {
+        // User pegs-in via the two step process in the preceding test...
+        await mintTokensTo(PLOTTO_METHODS, OWNER_ADDRESS, USER_ADDRESS, TOKEN_AMOUNT)
+        await PLOTTO_METHODS
+          .send(TOKEN_SWAP_ADDRESS, TOKEN_AMOUNT, EMPTY_DATA)
+          .send({ from: USER_ADDRESS, gas: GAS_LIMIT })
+
+        // Assert balances after pegging in...
+        assert.strictEqual(await getUserPLottoBalance(), 0)
+        assert.strictEqual(await getUserLottoBalance(), TOKEN_AMOUNT)
+        assert.strictEqual(await getTokenSwapContractPLottoBalance(), TOKEN_AMOUNT)
+
+        // User then converts their `Lotto` tokens back to `pLotto` tokens...
+        await TOKEN_SWAP_METHODS.redeemPLotto(TOKEN_AMOUNT).send({ from: USER_ADDRESS, gas: GAS_LIMIT })
+
+        // Assert balances after user has convert their `Lotto` to `pLotto`...
+        assert.strictEqual(await getUserPLottoBalance(), TOKEN_AMOUNT)
+        assert.strictEqual(await getUserLottoBalance(), 0)
+        assert.strictEqual(await getTokenSwapContractPLottoBalance(), 0)
+
+        // User then redeems the `pLotto` tokens to origin-chain `Lotto` tokens via the `pLotto` contract...
+        await PLOTTO_METHODS['redeem(uint256,bytes,string)'](
+          TOKEN_AMOUNT,
+          USER_DATA,
+          DESTINATION_ADDRESS,
+        ).send({ from: USER_ADDRESS, gas: GAS_LIMIT })
+
+        // Assert zero balances after peg-out...
+        assert.strictEqual(await getUserPLottoBalance(), 0)
+        assert.strictEqual(await getUserLottoBalance(), 0)
+        assert.strictEqual(await getTokenSwapContractPLottoBalance(), 0)
+
+        // Assert the values in the redeem event fired from the `pLotto` contract.
+        const redeemEvents = await PLOTTO_CONTRACT.getPastEvents(REDEEM_EVENT_NAME)
+        assert.strictEqual(redeemEvents.length, 1)
+        const eventData = redeemEvents[0].returnValues
+        assert.strictEqual(eventData.userData, USER_DATA)
+        assert.strictEqual(eventData.value, `${TOKEN_AMOUNT}`)
+        assert.strictEqual(eventData.redeemer, `${USER_ADDRESS}`)
+        assert.strictEqual(eventData._underlyingAssetRecipient, DESTINATION_ADDRESS)
+
+        // The pToken bridge takes over from here having seen the `redeem` event. The bridge completes the peg-out
+        // to the origin-chain.
+      })
     })
 
     describe('Misc token-swapping tests:', () => {
