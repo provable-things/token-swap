@@ -2,18 +2,20 @@
 pragma solidity >=0.7.0 < 0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./ITOKEN_SWAP.sol";
 
 contract ERC20_SIMPLE is ERC20 {
 
     address public OWNER;
-    address public ADMIN;
+    address public TOKEN_SWAP_CONTRACT;
 
-    constructor()
+    constructor(
+        address _tokenSwapContract
+    )
         ERC20("ERC20", "ERC")
     {
         OWNER = msg.sender;
-        ADMIN = msg.sender;
-        _mint(msg.sender, 1e18);
+        TOKEN_SWAP_CONTRACT = _tokenSwapContract;
     }
 
     modifier onlyOwner() {
@@ -21,18 +23,9 @@ contract ERC20_SIMPLE is ERC20 {
         _;
     }
 
-    modifier onlyAdmin() {
-        require(msg.sender == ADMIN, 'Only `ADMIN` can call this function!');
+    modifier onlyTokenSwapContract() {
+        require(msg.sender == TOKEN_SWAP_CONTRACT, 'Only the token-swap contract can call this function!');
         _;
-    }
-
-    function setAdmin(
-        address _admin
-    )
-        external
-        onlyOwner
-    {
-        ADMIN = _admin;
     }
 
     function mint(
@@ -40,7 +33,7 @@ contract ERC20_SIMPLE is ERC20 {
         uint256 _amount
     )
         external
-        onlyAdmin
+        onlyTokenSwapContract
         returns (bool success)
     {
         require(_to != address(0), "Cannot mint to the zero address!");
@@ -53,7 +46,7 @@ contract ERC20_SIMPLE is ERC20 {
         uint256 _amount
     )
         external
-        onlyAdmin
+        onlyTokenSwapContract
     {
         _burn(_from, _amount);
     }
