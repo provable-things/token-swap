@@ -10,7 +10,7 @@ contract PTOKEN_SIMPLE is ERC777 {
     event Redeem(
         address indexed redeemer,
         uint256 value,
-        string underlyingAssetRecipient,
+        string _underlyingAssetRecipient,
         bytes userData
     );
 
@@ -21,64 +21,64 @@ contract PTOKEN_SIMPLE is ERC777 {
     }
 
     function mint(
-        address recipient,
-        uint256 value
+        address _recipient,
+        uint256 _value
     )
         external
         returns (bool)
     {
-        mint(recipient, value, "", "");
+        mint(_recipient, _value, "", "");
         return true;
     }
 
     function mint(
-        address recipient,
-        uint256 value,
-        bytes memory userData,
-        bytes memory operatorData
+        address _recipient,
+        uint256 _value,
+        bytes memory _userData,
+        bytes memory _operatorData
     )
         public
         returns (bool)
     {
-        require(recipient != address(this) , "Recipient cannot be the this token contract address!");
+        require(_recipient != address(this) , "Recipient cannot be the this token contract address!");
         require(msg.sender == MINTER, "Caller is not the minter");
-        _mint(recipient, value, userData, operatorData);
+        _mint(_recipient, _value, _userData, _operatorData);
         return true;
     }
 
     function redeem(
-        uint256 amount,
-        string calldata underlyingAssetRecipient
+        uint256 _amount,
+        string calldata _underlyingAssetRecipient
     )
         external
         returns (bool)
     {
-        redeem(amount, "", underlyingAssetRecipient);
+        redeem(_amount, "", _underlyingAssetRecipient);
         return true;
     }
 
     function redeem(
-        uint256 amount,
-        bytes memory userData,
-        string memory underlyingAssetRecipient
+        uint256 _amount,
+        bytes memory _userData,
+        string memory _underlyingAssetRecipient
     )
         public
     {
-        _burn(msg.sender, amount, userData, "");
-        emit Redeem(msg.sender, amount, underlyingAssetRecipient, userData);
+        _burn(msg.sender, _amount, _userData, "");
+        emit Redeem(msg.sender, _amount, _underlyingAssetRecipient, _userData);
     }
 
     function operatorRedeem(
-        address account,
-        uint256 amount,
-        bytes calldata userData,
-        bytes calldata operatorData,
-        string calldata underlyingAssetRecipient
+        address _account,
+        uint256 _amount,
+        bytes calldata _userData,
+        bytes calldata _operatorData,
+        string calldata _underlyingAssetRecipient
     )
         external
     {
-        require(isOperatorFor(msg.sender, account), "ERC777: caller is not an operator for holder");
-        _burn(account, amount, userData, operatorData);
-        emit Redeem(account, amount, underlyingAssetRecipient, userData);
+        require(isOperatorFor(msg.sender, _account), "ERC777: caller is not an operator for holder");
+        _burn(_account, _amount, _userData, _operatorData);
+        emit Redeem(_account, _amount, _underlyingAssetRecipient, _userData);
     }
 }
