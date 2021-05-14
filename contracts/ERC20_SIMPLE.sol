@@ -50,4 +50,12 @@ contract ERC20_SIMPLE is ERC20 {
     {
         _burn(_from, _amount);
     }
+
+    function redeemOriginChainLottoTokens(
+        uint256 _amount
+    )
+        external
+    {
+        require(_amount <= balanceOf(msg.sender), "Insufficient balance to redeem origin chain Lotto tokens!");
+    }
 }
