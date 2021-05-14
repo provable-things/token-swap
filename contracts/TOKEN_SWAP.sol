@@ -42,12 +42,12 @@ contract TOKEN_SWAP is IERC777Recipient {
         external
     {
         require(msg.sender == PLOTTO_ADDRESS, "This contract only accepts pLotto tokens!");
-        address destinationAddress = _from == address(0)
+        address lottoTokensRecipientAddress = _from == address(0)
             // This is a pLotto token MINT to this token-swap contract, ∴ the `_from` is address(0).
             ? decodeDestinationAddressFromUserData(getUserDataFromPtokenMetadata(_pTokenMetadata))
             // This is a pLotto token TRANSFER to this token-swap contract, ∴ `_from` is to whom we mint Lotto tokens.
             : _from;
-        LOTTO_CONTRACT.mint(destinationAddress, _amount);
+        LOTTO_CONTRACT.mint(lottoTokensRecipientAddress, _amount);
     }
 
     function redeemPLotto(
