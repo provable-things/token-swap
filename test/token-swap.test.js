@@ -12,6 +12,7 @@ const PTOKEN_SIMPLE_ARTIFACT = artifacts.require('PTOKEN_SIMPLE.sol')
 const { encodePTokenMetadata } = require('./ptoken-metadata-encoder')
 
 contract('TOKEN_SWAP', ([ OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS ]) => {
+  let getUserLottoBalance, getUserPLottoBalance, getTokenSwapContractPLottoBalance
   let PLOTTO_METHODS, LOTTO_METHODS, TOKEN_SWAP_METHODS, PLOTTO_ADDRESS, LOTTO_ADDRESS, TOKEN_SWAP_ADDRESS
 
   const GAS_LIMIT = 3e6
@@ -32,21 +33,36 @@ contract('TOKEN_SWAP', ([ OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS ]) => {
     TOKEN_SWAP_ADDRESS = prop('_address', TOKEN_SWAP_CONTRACT)
 
     await LOTTO_METHODS.setAdmin(TOKEN_SWAP_ADDRESS).send({ from: OWNER_ADDRESS })
+
+    // Define some helper fxns...
+    getUserLottoBalance = _ => getTokenBalance(TOKEN_HOLDER_ADDRESS, LOTTO_METHODS)
+    getUserPLottoBalance = _ => getTokenBalance(TOKEN_HOLDER_ADDRESS, PLOTTO_METHODS)
+    getTokenSwapContractPLottoBalance = _ => getTokenBalance(TOKEN_SWAP_ADDRESS, PLOTTO_METHODS)
   })
 
   it('Sending `pLOTTO` tokens to `TOKEN_SWAP contract should mint `Lotto` tokens`', async () => {
-    const lottoBalanceBefore = await getTokenBalance(TOKEN_HOLDER_ADDRESS, LOTTO_METHODS)
-    assert.strictEqual(lottoBalanceBefore, 0)
+    // Assert zero balances...
+    assert.strictEqual(await getUserLottoBalance(), 0)
+    assert.strictEqual(await getUserPLottoBalance(), 0)
+    assert.strictEqual(await getTokenSwapContractPLottoBalance(), 0)
+
+    // Mint pLotto to user...
     await mintTokensTo(PLOTTO_METHODS, OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS, TOKEN_AMOUNT)
-    const pLottoBalanceInTokenSwapContractBefore = await getTokenBalance(TOKEN_SWAP_ADDRESS, PLOTTO_METHODS)
-    assert.strictEqual(pLottoBalanceInTokenSwapContractBefore, 0)
+
+    // Assert correct balances after pLotto mint...
+    assert.strictEqual(await getUserLottoBalance(), 0)
+    assert.strictEqual(await getUserPLottoBalance(), TOKEN_AMOUNT)
+    assert.strictEqual(await getTokenSwapContractPLottoBalance(), 0)
+
+    // User sends their `pLotto` tokens to the token swap contract...
     await PLOTTO_METHODS
       .send(TOKEN_SWAP_ADDRESS, TOKEN_AMOUNT, EMPTY_DATA)
       .send({ from: TOKEN_HOLDER_ADDRESS, gas: GAS_LIMIT })
-    const lottoBalanceAfter = await getTokenBalance(TOKEN_HOLDER_ADDRESS, LOTTO_METHODS)
-    assert.strictEqual(lottoBalanceAfter, TOKEN_AMOUNT)
-    const pLottoBalanceInTokenSwapContractAfter = await getTokenBalance(TOKEN_SWAP_ADDRESS, PLOTTO_METHODS)
-    assert.strictEqual(pLottoBalanceInTokenSwapContractAfter, TOKEN_AMOUNT)
+
+    // Assert final balances...
+    assert.strictEqual(await getUserPLottoBalance(), 0)
+    assert.strictEqual(await getUserLottoBalance(), TOKEN_AMOUNT)
+    assert.strictEqual(await getTokenSwapContractPLottoBalance(), TOKEN_AMOUNT)
   })
 
   it('Sending ERC777 tokens other than `pLOTTO` to the `TOKEN_SWAP` contract should revert', async () => {
