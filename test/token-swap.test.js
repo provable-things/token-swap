@@ -7,8 +7,8 @@ const assert = require('assert')
 const { prop } = require('ramda')
 const { expectRevert } = require('@openzeppelin/test-helpers')
 const TOKEN_SWAP_ARTIFACT = artifacts.require('TOKEN_SWAP.sol')
-const PTOKEN_SIMPLE_ARTIFACT = artifacts.require('PTOKEN_SIMPLE.sol')
 const ERC20_SIMPLE_ARTIFACT = artifacts.require('ERC20_SIMPLE.sol')
+const PTOKEN_SIMPLE_ARTIFACT = artifacts.require('PTOKEN_SIMPLE.sol')
 
 contract('TOKEN_SWAP', ([ OWNER, TOKEN_HOLDER ]) => {
   let PLOTTO_METHODS, LOTTO_METHODS, TOKEN_SWAP_METHODS, PLOTTO_ADDRESS, LOTTO_ADDRESS, TOKEN_SWAP_ADDRESS
