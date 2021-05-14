@@ -30,6 +30,17 @@ contract TOKEN_SWAP is IERC777Recipient {
         ERC1820_CONTRACT.setInterfaceImplementer(address(this), ERC777_TOKENS_RECIPIENT_INTERFACE_HASH, address(this));
     }
 
+    /**
+     * @dev                     This is the ERC777 `tokensReceived` hook (https://eips.ethereum.org/EIPS/eip-777)
+     *                          The spec requires this hook to be called whenever ERC777 tokens are sent if the
+     *                          receiving contract is registered as an ERC777 token recipient, which this contract is.
+     *                          (See the constructor for the ERC1820 registration.)
+     *
+     * @param _from             Who is sending the tokens.
+     * @param _amount           The amount of tokens being sent.
+     * @param _pTokenMetadata   The pToken metadata added by the pTokens core.
+     *
+     */
     function tokensReceived(
         address /* _operator */,
         address _from,
