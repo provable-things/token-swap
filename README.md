@@ -30,9 +30,9 @@ it('Sending `pLOTTO` tokens to `TOKEN_SWAP contract should mint `Lotto` tokens`'
 
 ## :clipboard: Notes:
 
-- Notice how the __`./contracts/ILOTTO_SIMPLE.sol`__ interface shows the minimum set of methods the __`Lotto`__ contract would need to implement in order to work with the __`TOKEN_SWAP`__ contract. A sample implementation can be seen in __`./contracts/LOTTO_SIMPLE.sol`__.
+- Notice how the __`./contracts/ILOTTO.sol`__ interface shows the minimum set of methods the __`Lotto`__ contract would need to implement in order to work with the __`TOKEN_SWAP`__ contract. A sample implementation can be seen in __`./contracts/LOTTO.sol`__.
 
-- The __`./contracts/PTOKEN_SIMPLE.sol`__ contract is a trimmed down & non-upgradeable facsimile of the actual __`pToken`__ implementation [that can be seen here](https://github.com/provable-things/ptokens-erc777-smart-contract).
+- The __`./contracts/PTOKEN.sol`__ contract is a trimmed down & non-upgradeable facsimile of the actual __`pToken`__ implementation [that can be seen here](https://github.com/provable-things/ptokens-erc777-smart-contract).
 
 &nbsp;
 
@@ -66,13 +66,13 @@ Test output:
 
 ```
 
-  Contract: LOTTO_SIMPLE
+  Contract: LOTTO
     ✓ `ADMIN` can mint tokens (291ms)
     ✓ Non `ADMIN` cannot mint (123ms)
     ✓ `ADMIN` can burn tokens (497ms)
     ✓ Non `ADMIN` cannot burn tokens (299ms)
 
-  Contract: PTOKEN_SIMPLE
+  Contract: PTOKEN
     ✓ `MINTER` can mint tokens (330ms)
     ✓ `NON_MINTER` cannot mint (203ms)
 

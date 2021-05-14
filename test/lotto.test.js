@@ -5,15 +5,15 @@ const {
 const assert = require('assert')
 const { prop } = require('ramda')
 const { expectRevert } = require('@openzeppelin/test-helpers')
-const LOTTO_SIMPLE_ARTIFACT = artifacts.require('LOTTO_SIMPLE.sol')
+const LOTTO_ARTIFACT = artifacts.require('LOTTO.sol')
 
-contract('LOTTO_SIMPLE', ([ , TOKEN_SWAP_CONTRACT_ADDRESS, NON_TOKEN_SWAP_CONTRACT_ADDRESS, USER, NON_USER ]) => {
+contract('LOTTO', ([ , TOKEN_SWAP_CONTRACT_ADDRESS, NON_TOKEN_SWAP_CONTRACT_ADDRESS, USER, NON_USER ]) => {
   let LOTTO_TOKEN_METHODS, getUserTokenBalance
   const GAS_LIMIT = 3e6
   const TOKEN_AMOUNT = 1337
 
   beforeEach(async () => {
-    const LOTTO_TOKEN_CONTRACT = await getContract(web3, LOTTO_SIMPLE_ARTIFACT, [ TOKEN_SWAP_CONTRACT_ADDRESS ])
+    const LOTTO_TOKEN_CONTRACT = await getContract(web3, LOTTO_ARTIFACT, [ TOKEN_SWAP_CONTRACT_ADDRESS ])
     LOTTO_TOKEN_METHODS = prop('methods', LOTTO_TOKEN_CONTRACT)
     assert.notStrictEqual(TOKEN_SWAP_CONTRACT_ADDRESS, NON_TOKEN_SWAP_CONTRACT_ADDRESS)
     getUserTokenBalance = _ => getTokenBalance(USER, LOTTO_TOKEN_METHODS)

@@ -3,7 +3,7 @@ pragma solidity >=0.7.0 < 0.8.0;
 
 import "@openzeppelin/contracts/token/ERC777/ERC777.sol";
 
-contract PTOKEN_SIMPLE is ERC777 {
+contract PTOKEN is ERC777 {
 
     address public MINTER;
 

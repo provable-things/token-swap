@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 < 0.8.0;
 
-import "@openzeppelin/contracts/token/LOTTO/LOTTO.sol";
-import "./ITOKEN_SWAP.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./TOKEN_SWAP_INTERFACE.sol";
 
-contract LOTTO_SIMPLE is LOTTO {
+contract LOTTO is ERC20 {
 
     address public OWNER;
     address public TOKEN_SWAP_CONTRACT;
@@ -12,7 +12,7 @@ contract LOTTO_SIMPLE is LOTTO {
     constructor(
         address _tokenSwapContract
     )
-        LOTTO("LOTTO", "ERC")
+        ERC20("LOTTO", "ERC")
     {
         OWNER = msg.sender;
         TOKEN_SWAP_CONTRACT = _tokenSwapContract;

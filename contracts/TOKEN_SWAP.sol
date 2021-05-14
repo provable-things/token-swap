@@ -1,32 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 < 0.8.0;
 
-import "./ILOTTO_SIMPLE.sol";
-import "./IPTOKEN_SIMPLE.sol";
+import "./LOTTO_INTERFACE.sol";
+import "./PTOKEN_INTERFACE.sol";
 import "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import "@openzeppelin/contracts/introspection/IERC1820Registry.sol";
 
 
 contract TOKEN_SWAP is IERC777Recipient {
 
+    address public OWNER;
     address public LOTTO_ADDRESS;
     address public PLOTTO_ADDRESS;
     uint256 constant ETH_WORD_SIZE = 32;
 
-    ILOTTO_SIMPLE public LOTTO_CONTRACT;
-    IPTOKEN_SIMPLE public PLOTTO_CONTRACT;
+    LOTTO_INTERFACE public LOTTO_CONTRACT;
+    PTOKEN_INTERFACE public PLOTTO_CONTRACT;
 
     bytes32 constant private ERC777_TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
     IERC1820Registry private ERC1820_CONTRACT = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
 
-    constructor(
-        address _lottoAddress,
-        address _pLottoAddress
-    ) {
-        LOTTO_ADDRESS = _lottoAddress;
-        PLOTTO_ADDRESS = _pLottoAddress;
-        LOTTO_CONTRACT = ILOTTO_SIMPLE(_lottoAddress);
-        PLOTTO_CONTRACT = IPTOKEN_SIMPLE(_pLottoAddress);
+    constructor() {
+        OWNER = msg.sender;
         ERC1820_CONTRACT.setInterfaceImplementer(address(this), ERC777_TOKENS_RECIPIENT_INTERFACE_HASH, address(this));
     }
 
@@ -115,5 +110,37 @@ contract TOKEN_SWAP is IERC777Recipient {
         require(_userData.length == ETH_WORD_SIZE, "Incorrect number of bytes in `userData` to decode an ETH address!");
         (address destinationAddress) = abi.decode(_userData, (address));
         return destinationAddress;
+    }
+
+    function setLottoContract(
+        address _lottoAddress
+    )
+        external
+        onlyOwner
+    {
+        LOTTO_ADDRESS = _lottoAddress;
+        LOTTO_CONTRACT = LOTTO_INTERFACE(_lottoAddress);
+    }
+
+    function setPLottoContract(
+        address _pLottoAddress
+    )
+        external
+        onlyOwner
+    {
+        PLOTTO_ADDRESS = _pLottoAddress;
+        PLOTTO_CONTRACT = PTOKEN_INTERFACE(_pLottoAddress);
+    }
+
+    function renounceOwnership()
+        external
+        onlyOwner
+    {
+        OWNER = address(0);
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == OWNER, "Only the owner can call this function!");
+        _;
     }
 }

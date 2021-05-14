@@ -5,16 +5,16 @@ const {
 const assert = require('assert')
 const { prop } = require('ramda')
 const { expectRevert } = require('@openzeppelin/test-helpers')
-const PTOKEN_SIMPLE_ARTIFACT = artifacts.require('PTOKEN_SIMPLE.sol')
+const PTOKEN_ARTIFACT = artifacts.require('PTOKEN.sol')
 
-contract('PTOKEN_SIMPLE', ([ MINTER, NON_MINTER, TOKEN_RECIPIENT ]) => {
+contract('PTOKEN', ([ MINTER, NON_MINTER, TOKEN_RECIPIENT ]) => {
   let TOKEN_METHODS
   const GAS_LIMIT = 3e6
   const TOKEN_AMOUNT = 1337
 
   beforeEach(async () => {
     assert(MINTER !== NON_MINTER)
-    const TOKEN_CONTRACT = await getContract(web3, PTOKEN_SIMPLE_ARTIFACT)
+    const TOKEN_CONTRACT = await getContract(web3, PTOKEN_ARTIFACT)
     TOKEN_METHODS = prop('methods', TOKEN_CONTRACT)
   })
 

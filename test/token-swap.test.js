@@ -1,38 +1,47 @@
 const {
   getContract,
-  getTokenBalance,
   mintTokensTo,
+  getTokenBalance,
+  getRandomEthAddress,
 } = require('./test-utils')
 const assert = require('assert')
 const { prop } = require('ramda')
 const { expectRevert } = require('@openzeppelin/test-helpers')
 const TOKEN_SWAP_ARTIFACT = artifacts.require('TOKEN_SWAP.sol')
-const LOTTO_SIMPLE_ARTIFACT = artifacts.require('LOTTO_SIMPLE.sol')
-const PTOKEN_SIMPLE_ARTIFACT = artifacts.require('PTOKEN_SIMPLE.sol')
+const LOTTO_ARTIFACT = artifacts.require('LOTTO.sol')
+const PTOKEN_ARTIFACT = artifacts.require('PTOKEN.sol')
 const { encodePTokenMetadata } = require('./ptoken-metadata-encoder')
 
-contract('TOKEN_SWAP', ([ OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS ]) => {
+contract('TOKEN_SWAP', ([ OWNER_ADDRESS, NON_OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS ]) => {
   let getUserLottoBalance, getUserPLottoBalance, getTokenSwapContractPLottoBalance
   let PLOTTO_METHODS, LOTTO_METHODS, TOKEN_SWAP_METHODS, PLOTTO_ADDRESS, LOTTO_ADDRESS, TOKEN_SWAP_ADDRESS
 
   const GAS_LIMIT = 3e6
   const EMPTY_DATA = '0x'
   const TOKEN_AMOUNT = 1337
+  const ONLY_OWNER_ERR = 'Only the owner can call this function!'
+  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
   beforeEach(async () => {
-    const LOTTO_CONTRACT = await getContract(web3, LOTTO_SIMPLE_ARTIFACT)
-    LOTTO_METHODS = prop('methods', LOTTO_CONTRACT)
-    LOTTO_ADDRESS = prop('_address', LOTTO_CONTRACT)
-
-    const PLOTTO_CONTRACT = await getContract(web3, PTOKEN_SIMPLE_ARTIFACT)
+    // Deploy contracts and save relevant details as variables...
+    const PLOTTO_CONTRACT = await getContract(web3, PTOKEN_ARTIFACT)
     PLOTTO_METHODS = prop('methods', PLOTTO_CONTRACT)
     PLOTTO_ADDRESS = prop('_address', PLOTTO_CONTRACT)
 
-    const TOKEN_SWAP_CONTRACT = await getContract(web3, TOKEN_SWAP_ARTIFACT, [ LOTTO_ADDRESS, PLOTTO_ADDRESS ])
+    const TOKEN_SWAP_CONTRACT = await getContract(web3, TOKEN_SWAP_ARTIFACT)
     TOKEN_SWAP_METHODS = prop('methods', TOKEN_SWAP_CONTRACT)
     TOKEN_SWAP_ADDRESS = prop('_address', TOKEN_SWAP_CONTRACT)
 
-    await LOTTO_METHODS.setAdmin(TOKEN_SWAP_ADDRESS).send({ from: OWNER_ADDRESS })
+    const LOTTO_CONTRACT = await getContract(web3, LOTTO_ARTIFACT, [ TOKEN_SWAP_ADDRESS ])
+    LOTTO_METHODS = prop('methods', LOTTO_CONTRACT)
+    LOTTO_ADDRESS = prop('_address', LOTTO_CONTRACT)
+
+    // Set the correct contract addresses in the token-swap contract..
+    await TOKEN_SWAP_METHODS.setLottoContract(LOTTO_ADDRESS).send({ from: OWNER_ADDRESS, gas: GAS_LIMIT })
+    await TOKEN_SWAP_METHODS.setPLottoContract(PLOTTO_ADDRESS).send({ from: OWNER_ADDRESS, gas: GAS_LIMIT })
+
+    // Renounce ownership since we no longer need a contract admin...
+    await TOKEN_SWAP_METHODS.renounceOwnership().send({ from: OWNER_ADDRESS, gas: GAS_LIMIT })
 
     // Define some helper fxns...
     getUserLottoBalance = _ => getTokenBalance(TOKEN_HOLDER_ADDRESS, LOTTO_METHODS)
@@ -107,7 +116,7 @@ contract('TOKEN_SWAP', ([ OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS ]) => {
   })
 
   it('Sending ERC777 tokens other than `pLOTTO` to the `TOKEN_SWAP` contract should revert', async () => {
-    const ERC777_CONTRACT = await getContract(web3, PTOKEN_SIMPLE_ARTIFACT)
+    const ERC777_CONTRACT = await getContract(web3, PTOKEN_ARTIFACT)
     const ERC777_METHODS = prop('methods', ERC777_CONTRACT)
     const ERC777_ADDRESS = prop('_address', ERC777_CONTRACT)
     assert.notStrictEqual(ERC777_ADDRESS, PLOTTO_ADDRESS)
@@ -132,5 +141,72 @@ contract('TOKEN_SWAP', ([ OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS ]) => {
     await TOKEN_SWAP_METHODS.redeemPLotto(REDEEM_AMOUNT).send({ from: TOKEN_HOLDER_ADDRESS, gas: GAS_LIMIT })
     assert.strictEqual(await getUserLottoBalance(), userLottoBalanceBefore - REDEEM_AMOUNT)
     assert.strictEqual(await getUserPLottoBalance(), REDEEM_AMOUNT)
+  })
+
+  it('`OWNER_ADDRESS` can set Lotto contract', async () => {
+    const NEW_TOKEN_SWAP_CONTRACT = await getContract(web3, TOKEN_SWAP_ARTIFACT)
+    const NEW_LOTTO_CONTRACT_ADDRESS = getRandomEthAddress(web3)
+    assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.LOTTO_ADDRESS().call(), ZERO_ADDRESS)
+    await NEW_TOKEN_SWAP_CONTRACT
+      .methods
+      .setLottoContract(NEW_LOTTO_CONTRACT_ADDRESS)
+      .send({ from: OWNER_ADDRESS, gas: GAS_LIMIT })
+    assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.LOTTO_ADDRESS().call(), NEW_LOTTO_CONTRACT_ADDRESS)
+  })
+
+  it('`NON_OWNER_ADDRESS` cannot set Lotto contract', async () => {
+    const NEW_TOKEN_SWAP_CONTRACT = await getContract(web3, TOKEN_SWAP_ARTIFACT)
+    const NEW_LOTTO_CONTRACT_ADDRESS = getRandomEthAddress(web3)
+    assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.LOTTO_ADDRESS().call(), ZERO_ADDRESS)
+    await expectRevert(
+      NEW_TOKEN_SWAP_CONTRACT
+        .methods
+        .setLottoContract(NEW_LOTTO_CONTRACT_ADDRESS)
+        .send({ from: NON_OWNER_ADDRESS, gas: GAS_LIMIT }),
+        ONLY_OWNER_ERR,
+    )
+    assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.LOTTO_ADDRESS().call(), ZERO_ADDRESS)
+  })
+
+  it('`OWNER_ADDRESS` can set pLotto contract', async() => {
+    const NEW_TOKEN_SWAP_CONTRACT = await getContract(web3, TOKEN_SWAP_ARTIFACT)
+    const NEW_PLOTTO_CONTRACT_ADDRESS = getRandomEthAddress(web3)
+    assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.PLOTTO_ADDRESS().call(), ZERO_ADDRESS)
+    await NEW_TOKEN_SWAP_CONTRACT
+      .methods
+      .setPLottoContract(NEW_PLOTTO_CONTRACT_ADDRESS)
+      .send({ from: OWNER_ADDRESS, gas: GAS_LIMIT })
+    assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.PLOTTO_ADDRESS().call(), NEW_PLOTTO_CONTRACT_ADDRESS)
+  })
+
+  it('`NON_OWNER_ADDRESS` cannot set pLotto contract', async () => {
+    const NEW_TOKEN_SWAP_CONTRACT = await getContract(web3, TOKEN_SWAP_ARTIFACT)
+    const NEW_PLOTTO_CONTRACT_ADDRESS = getRandomEthAddress(web3)
+    assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.PLOTTO_ADDRESS().call(), ZERO_ADDRESS)
+    await expectRevert(
+      NEW_TOKEN_SWAP_CONTRACT
+        .methods
+        .setPLottoContract(NEW_PLOTTO_CONTRACT_ADDRESS)
+        .send({ from: NON_OWNER_ADDRESS, gas: GAS_LIMIT }),
+        ONLY_OWNER_ERR
+    )
+    assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.PLOTTO_ADDRESS().call(), ZERO_ADDRESS)
+  })
+
+  it('`OWNER_ADDRESS` can renounce ownership', async () => {
+    const NEW_TOKEN_SWAP_CONTRACT = await getContract(web3, TOKEN_SWAP_ARTIFACT)
+    assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.OWNER().call(), OWNER_ADDRESS)
+    await NEW_TOKEN_SWAP_CONTRACT.methods.renounceOwnership().send({ from: OWNER_ADDRESS, gas: GAS_LIMIT })
+    assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.OWNER().call(), ZERO_ADDRESS)
+  })
+
+  it('`NON_OWNER_ADDRESS` cannot renounce ownership', async () => {
+    const NEW_TOKEN_SWAP_CONTRACT = await getContract(web3, TOKEN_SWAP_ARTIFACT)
+    assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.OWNER().call(), OWNER_ADDRESS)
+    await expectRevert(
+      NEW_TOKEN_SWAP_CONTRACT.methods.renounceOwnership().send({ from: NON_OWNER_ADDRESS, gas: GAS_LIMIT }),
+      ONLY_OWNER_ERR,
+    )
+    assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.OWNER().call(), OWNER_ADDRESS)
   })
 })

@@ -32,7 +32,11 @@ const mintTokensTo = (_methods, _minter, _recipient, _amount) => {
   return checkObjHasKey(_methods, method).then(_ => _methods[method](_recipient, _amount).send({ from: _minter }))
 }
 
+const getRandomEthAddress = _web3 =>
+  _web3.utils.toChecksumAddress(_web3.utils.randomHex(20))
+
 module.exports = {
+  getRandomEthAddress,
   getTokenBalance,
   checkObjHasKey,
   mintTokensTo,
