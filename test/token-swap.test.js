@@ -9,6 +9,7 @@ const { expectRevert } = require('@openzeppelin/test-helpers')
 const TOKEN_SWAP_ARTIFACT = artifacts.require('TOKEN_SWAP.sol')
 const ERC20_SIMPLE_ARTIFACT = artifacts.require('ERC20_SIMPLE.sol')
 const PTOKEN_SIMPLE_ARTIFACT = artifacts.require('PTOKEN_SIMPLE.sol')
+const { encodePTokenMetadata } = require('./ptoken-metadata-encoder')
 
 contract('TOKEN_SWAP', ([ OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS ]) => {
   let PLOTTO_METHODS, LOTTO_METHODS, TOKEN_SWAP_METHODS, PLOTTO_ADDRESS, LOTTO_ADDRESS, TOKEN_SWAP_ADDRESS
