@@ -74,6 +74,23 @@ contract TOKEN_SWAP is IERC777Recipient {
         PLOTTO_CONTRACT.send(msg.sender, _amount, _userData);
     }
 
+    function redeemOriginChainLotto(
+        uint256 _amount,
+        address _redeemer,
+        bytes memory _userData,
+        string memory _underlyingAssetRecipient
+    )
+        external
+    {
+        require(msg.sender == LOTTO_ADDRESS, "Only Lotto contract address can call this function!");
+        // TODO burn the amount of LOTTO
+        PLOTTO_CONTRACT.redeem( // redeem the same amount of pLotto
+            _amount,
+            _userData,
+            _underlyingAssetRecipient
+        );
+    }
+
     function decodePTokenMetdata(
         bytes memory _metadata
     )

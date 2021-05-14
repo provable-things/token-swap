@@ -163,12 +163,12 @@ contract('TOKEN_SWAP', ([ OWNER_ADDRESS, NON_OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS
         .methods
         .setLottoContract(NEW_LOTTO_CONTRACT_ADDRESS)
         .send({ from: NON_OWNER_ADDRESS, gas: GAS_LIMIT }),
-        ONLY_OWNER_ERR,
+      ONLY_OWNER_ERR,
     )
     assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.LOTTO_ADDRESS().call(), ZERO_ADDRESS)
   })
 
-  it('`OWNER_ADDRESS` can set pLotto contract', async() => {
+  it('`OWNER_ADDRESS` can set pLotto contract', async () => {
     const NEW_TOKEN_SWAP_CONTRACT = await getContract(web3, TOKEN_SWAP_ARTIFACT)
     const NEW_PLOTTO_CONTRACT_ADDRESS = getRandomEthAddress(web3)
     assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.PLOTTO_ADDRESS().call(), ZERO_ADDRESS)
@@ -188,7 +188,7 @@ contract('TOKEN_SWAP', ([ OWNER_ADDRESS, NON_OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS
         .methods
         .setPLottoContract(NEW_PLOTTO_CONTRACT_ADDRESS)
         .send({ from: NON_OWNER_ADDRESS, gas: GAS_LIMIT }),
-        ONLY_OWNER_ERR
+      ONLY_OWNER_ERR
     )
     assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.PLOTTO_ADDRESS().call(), ZERO_ADDRESS)
   })
@@ -208,5 +208,17 @@ contract('TOKEN_SWAP', ([ OWNER_ADDRESS, NON_OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS
       ONLY_OWNER_ERR,
     )
     assert.strictEqual(await NEW_TOKEN_SWAP_CONTRACT.methods.OWNER().call(), OWNER_ADDRESS)
+  })
+
+  it('Non `LOTTO_ADDRESS` cannot call `redeemOriginChainLotto` function', async () => {
+    const NON_LOTTO_ADDRESS = OWNER_ADDRESS
+    assert.notStrictEqual(NON_LOTTO_ADDRESS, LOTTO_ADDRESS)
+    const IRRELEVANT_FUNCTION_PARAMS = [TOKEN_AMOUNT, getRandomEthAddress(web3), EMPTY_DATA, `${ZERO_ADDRESS}`]
+    await expectRevert(
+      TOKEN_SWAP_METHODS
+        .redeemOriginChainLotto(...IRRELEVANT_FUNCTION_PARAMS)
+        .send({ from: NON_LOTTO_ADDRESS, gas: GAS_LIMIT }),
+      'Only Lotto contract address can call this function!',
+    )
   })
 })
