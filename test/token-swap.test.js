@@ -79,4 +79,43 @@ contract('TOKEN_SWAP', ([ OWNER_ADDRESS, TOKEN_HOLDER_ADDRESS ]) => {
     assert.strictEqual(lottoBalanceAfter, lottoBalanceBefore - REDEEM_AMOUNT)
     assert.strictEqual(pLottoBalanceAfter, REDEEM_AMOUNT)
   })
+
+  it('pLotto minted by the Provable bridge with the correct metadata will mint Lotto tokes in one tx', async () => {
+    // Dummy values to create `pTokenMetadata` with...
+    const PTOKEN_METADATA_DUMMY_METADATA_VERSION = '0x01'
+    const PTOKEN_METADATA_DUMMY_PROTOCOL_ID = '0x005fe7f9'
+    const PTOKEN_METADATA_DUMMY_ORIGIN_ADDRESS = '0x7eef81767e36269db39ffa6271cc4325cbc59cfe'
+
+    // ABI Encode the destination recipient address as 'userData'...
+    const userData = web3.eth.abi.encodeParameters(['address'], [TOKEN_HOLDER_ADDRESS])
+
+    // Use the 'userData' when encoding the pToken metadata...
+    const pTokenMetadata = encodePTokenMetadata(
+      web3,
+      PTOKEN_METADATA_DUMMY_METADATA_VERSION,
+      userData,
+      PTOKEN_METADATA_DUMMY_PROTOCOL_ID,
+      PTOKEN_METADATA_DUMMY_ORIGIN_ADDRESS,
+    )
+
+    // Assert balances before...
+    const tokenSwapContractPLottoBalanceBefore = await getTokenBalance(TOKEN_SWAP_ADDRESS, PLOTTO_METHODS)
+    assert.strictEqual(tokenSwapContractPLottoBalanceBefore, 0)
+    const tokenHolderLottoBalanceBefore = await getTokenBalance(TOKEN_HOLDER_ADDRESS, LOTTO_METHODS)
+    assert.strictEqual(tokenHolderLottoBalanceBefore, 0)
+
+    // Mint pLotto tokens to the `TOKEN_SWAP_ADDRESS` with the final user's destination address encoded in the metadata.
+    await PLOTTO_METHODS['mint(address,uint256,bytes,bytes)'](
+      TOKEN_SWAP_ADDRESS,
+      TOKEN_AMOUNT,
+      pTokenMetadata,
+      EMPTY_DATA, // NOTE: Unused ERC777-specific param: `operatorData`
+    ).send({ from: OWNER_ADDRESS, gas: GAS_LIMIT })
+
+    // Assert balances after...
+    const tokenSwapContractPLottoBalanceAfter = await getTokenBalance(TOKEN_SWAP_ADDRESS, PLOTTO_METHODS)
+    assert.strictEqual(tokenSwapContractPLottoBalanceAfter, TOKEN_AMOUNT)
+    const tokenHolderLottoBalanceAfter = await getTokenBalance(TOKEN_HOLDER_ADDRESS, LOTTO_METHODS)
+    assert.strictEqual(tokenHolderLottoBalanceAfter, TOKEN_AMOUNT)
+  })
 })
