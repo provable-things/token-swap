@@ -30,7 +30,7 @@ it('Sending `pLOTTO` tokens to `TOKEN_SWAP contract should mint `Lotto` tokens`'
 
 ## :clipboard: Notes:
 
-- Notice how the __`./contracts/IERC20_SIMPLE.sol`__ interface shows the minimum set of methods the __`Lotto`__ contract would need to implement in order to work with the __`TOKEN_SWAP`__ contract. A sample implementation can be seen in __`./contracts/ERC20_SIMPLE.sol`__.
+- Notice how the __`./contracts/ILOTTO_SIMPLE.sol`__ interface shows the minimum set of methods the __`Lotto`__ contract would need to implement in order to work with the __`TOKEN_SWAP`__ contract. A sample implementation can be seen in __`./contracts/LOTTO_SIMPLE.sol`__.
 
 - The __`./contracts/PTOKEN_SIMPLE.sol`__ contract is a trimmed down & non-upgradeable facsimile of the actual __`pToken`__ implementation [that can be seen here](https://github.com/provable-things/ptokens-erc777-smart-contract).
 
@@ -66,7 +66,7 @@ Test output:
 
 ```
 
-  Contract: ERC20_SIMPLE
+  Contract: LOTTO_SIMPLE
     ✓ `ADMIN` can mint tokens (291ms)
     ✓ Non `ADMIN` cannot mint (123ms)
     ✓ `ADMIN` can burn tokens (497ms)

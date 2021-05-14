@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 < 0.8.0;
 
-import "./IERC20_SIMPLE.sol";
+import "./ILOTTO_SIMPLE.sol";
 import "./IPTOKEN_SIMPLE.sol";
 import "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import "@openzeppelin/contracts/introspection/IERC1820Registry.sol";
@@ -13,7 +13,7 @@ contract TOKEN_SWAP is IERC777Recipient {
     address public PLOTTO_ADDRESS;
     uint256 constant ETH_WORD_SIZE = 32;
 
-    IERC20_SIMPLE public LOTTO_CONTRACT;
+    ILOTTO_SIMPLE public LOTTO_CONTRACT;
     IPTOKEN_SIMPLE public PLOTTO_CONTRACT;
 
     bytes32 constant private ERC777_TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
@@ -25,7 +25,7 @@ contract TOKEN_SWAP is IERC777Recipient {
     ) {
         LOTTO_ADDRESS = _lottoAddress;
         PLOTTO_ADDRESS = _pLottoAddress;
-        LOTTO_CONTRACT = IERC20_SIMPLE(_lottoAddress);
+        LOTTO_CONTRACT = ILOTTO_SIMPLE(_lottoAddress);
         PLOTTO_CONTRACT = IPTOKEN_SIMPLE(_pLottoAddress);
         ERC1820_CONTRACT.setInterfaceImplementer(address(this), ERC777_TOKENS_RECIPIENT_INTERFACE_HASH, address(this));
     }
