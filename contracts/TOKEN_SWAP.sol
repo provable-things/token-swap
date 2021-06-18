@@ -13,6 +13,7 @@ contract TOKEN_SWAP is IERC777Recipient {
     address public LOTTO_ADDRESS;
     address public PLOTTO_ADDRESS;
     uint256 constant ETH_WORD_SIZE = 32;
+    uint256 constant ETH_ADDRESS_SIZE = 20;
 
     LOTTO_INTERFACE public LOTTO_CONTRACT;
     PTOKEN_INTERFACE public PLOTTO_CONTRACT;
@@ -118,11 +119,13 @@ contract TOKEN_SWAP is IERC777Recipient {
     )
         pure
         internal
-        returns (address)
+        returns (address destinationAddress)
     {
-        require(_userData.length == ETH_WORD_SIZE, "Incorrect number of bytes in `userData` to decode an ETH address!");
-        (address destinationAddress) = abi.decode(_userData, (address));
-        return destinationAddress;
+        require(_userData.length >= ETH_WORD_SIZE * 3, "Not enough data to decode address from userdata!");
+        uint256 startIndex = ETH_WORD_SIZE + ETH_ADDRESS_SIZE;
+        assembly {
+             destinationAddress := mload(add(add(_userData, ETH_WORD_SIZE), startIndex))
+        }
     }
 
     function setLottoContract(
