@@ -51,7 +51,7 @@ contract TOKEN_SWAP is IERC777Recipient {
         require(msg.sender == PLOTTO_ADDRESS, "This contract only accepts pLotto tokens!");
         address lottoTokensRecipientAddress = _from == address(0)
             // This is a pLotto token MINT to this token-swap contract, ∴ the `_from` is address(0).
-            ? decodeDestinationAddressFromUserData(getUserDataFromPtokenMetadata(_pTokenMetadata))
+            ? convertBytesToAddress(getUserDataFromPtokenMetadata(_pTokenMetadata))
             // This is a pLotto token TRANSFER to this token-swap contract, ∴ `_from` is to whom we mint Lotto tokens.
             : _from;
         LOTTO_CONTRACT.mint(lottoTokensRecipientAddress, _amount);
@@ -114,17 +114,16 @@ contract TOKEN_SWAP is IERC777Recipient {
         return userData;
     }
 
-    function decodeDestinationAddressFromUserData(
-        bytes memory _userData
+    function convertBytesToAddress(
+        bytes memory _bytes
     )
         pure
         internal
         returns (address destinationAddress)
     {
-        require(_userData.length >= ETH_WORD_SIZE * 3, "Not enough data to decode address from userdata!");
-        uint256 startIndex = ETH_WORD_SIZE + ETH_ADDRESS_SIZE;
+        require(_bytes.length == ETH_ADDRESS_SIZE, "Incorrect number of bytes to convert to address!");
         assembly {
-             destinationAddress := mload(add(add(_userData, ETH_WORD_SIZE), startIndex))
+             destinationAddress := mload(add(_bytes, ETH_ADDRESS_SIZE))
         }
     }
 
