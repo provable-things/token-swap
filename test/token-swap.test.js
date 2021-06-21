@@ -143,15 +143,10 @@ contract('TOKEN_SWAP', ([ OWNER_ADDRESS, NON_OWNER_ADDRESS, USER_ADDRESS ]) => {
         const PTOKEN_METADATA_DUMMY_METADATA_VERSION = '0x01'
         const PTOKEN_METADATA_DUMMY_PROTOCOL_ID = '0x005fe7f9'
         const PTOKEN_METADATA_DUMMY_ORIGIN_ADDRESS = '0x7eef81767e36269db39ffa6271cc4325cbc59cfe'
-
-        // ABI Encode the destination address as 'userData'...
-        const userData = _web3.eth.abi.encodeParameters(['bytes'], [USER_ADDRESS])
-
-        // Use the 'userData' when encoding the pToken metadata...
         return encodePTokenMetadata(
           web3,
           PTOKEN_METADATA_DUMMY_METADATA_VERSION,
-          userData,
+          USER_ADDRESS,
           PTOKEN_METADATA_DUMMY_PROTOCOL_ID,
           PTOKEN_METADATA_DUMMY_ORIGIN_ADDRESS,
         )
