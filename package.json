@@ -1,13 +1,13 @@
 {
   "name": "token-swap",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A simple contract to swap one token for another.",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "npx truffle test"
+    "test": "echo \"=> Please see the README.md for how to run tests!\""
   },
   "repository": {
     "type": "git",
@@ -23,5 +23,21 @@
   "bugs": {
     "url": "https://github.com/provable-things/token-swap/issues"
   },
-  "homepage": "https://github.com/provable-things/token-swap#readme"
+  "homepage": "https://github.com/provable-things/token-swap#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "v3.4.0",
+    "@openzeppelin/test-helpers": "^0.5.11",
+    "ramda": "^0.27.1",
+    "truffle": "^5.3.6"
+  },
+  "devDependencies": {
+    "eslint": "^5.14.1",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-mocha": "^5.3.0",
+    "eslint-plugin-node": "^8.0.1",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "mocha": "^6.2.0"
+  }
 }
