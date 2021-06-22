@@ -1,6 +1,6 @@
 {
   "name": "token-swap",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A simple contract to swap one token for another.",
   "main": "truffle-config.js",
   "directories": {
